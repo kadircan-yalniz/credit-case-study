@@ -15,16 +15,16 @@ import java.util.List;
 @Table(name = "INSTALLMENT")
 public class Installment extends BaseCreatedColumns{
     @Id
-    @SequenceGenerator(name = "SEQ_INSTALLMENT", sequenceName = "SEQ_INSTALLMENT")
+    @SequenceGenerator(name = "SEQ_INSTALLMENT", sequenceName = "SEQ_INSTALLMENT", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_INSTALLMENT")
     @Column(name = "ID", length = 16)
     private Long id;
     @Column(name = "AMOUNT", precision = 19, scale = 2)
     private BigDecimal amount;
     @Column(name = "PARTIAL_FLAG", length = 1)
-    private Integer partialFlag;
+    private Integer partialFlag = 0;
     @Column(name = "STATUS", length = 1)
-    private Integer status;
+    private Integer status = 0;
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "CREDIT_ID", referencedColumnName = "ID")
@@ -33,6 +33,6 @@ public class Installment extends BaseCreatedColumns{
     private Date installmentDate;
     @Column(name = "PAYMENT_DATE")
     private Date paymentDate;
-    @OneToMany(mappedBy = "payment")
+    @OneToMany(mappedBy = "installment")
     private List<Payment> payments;
 }
