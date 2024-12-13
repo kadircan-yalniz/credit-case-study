@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "CUSTOMER")
 public class Customer extends BaseCreatedColumns{
     @Id
-    @SequenceGenerator(name = "SEQ_CUSTOMER", sequenceName = "SEQ_CUSTOMER")
+    @SequenceGenerator(name = "SEQ_CUSTOMER", sequenceName = "SEQ_CUSTOMER", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_CUSTOMER")
     @Column(name = "ID", length = 16)
     private Long id;
