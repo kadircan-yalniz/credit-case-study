@@ -14,7 +14,7 @@ import java.util.Date;
 @Table(name = "PAYMENT")
 public class Payment extends BaseCreatedColumns{
     @Id
-    @SequenceGenerator(name = "SEQ_PAYMENT", sequenceName = "SEQ_PAYMENT")
+    @SequenceGenerator(name = "SEQ_PAYMENT", sequenceName = "SEQ_PAYMENT", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_PAYMENT")
     @Column(name = "ID", length = 16)
     private Long id;
@@ -23,7 +23,7 @@ public class Payment extends BaseCreatedColumns{
     @JoinColumn(name = "INSTALLMENT_ID", referencedColumnName = "ID")
     private Installment installment;
     @Column(name = "PAID_AMOUNT", precision = 19, scale = 2)
-    private BigDecimal paidAMount;
+    private BigDecimal paidAmount;
     @Column(name = "PARTIAL_FLAG", precision = 19, scale = 2)
     private Integer partialFlag;
     @Column(name = "PAYMENT_DATE")
