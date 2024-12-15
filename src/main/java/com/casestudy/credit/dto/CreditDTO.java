@@ -12,7 +12,7 @@ import java.util.List;
 public class CreditDTO {
     private Long id;
     private Boolean status;
-    private BigDecimal remainingAmount;
+    private BigDecimal remainingPrincipalAmount;
     private Date openDate;
     private List<InstallmentDTO> installments;
 }

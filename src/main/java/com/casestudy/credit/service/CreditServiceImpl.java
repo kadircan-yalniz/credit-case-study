@@ -42,7 +42,7 @@ public class CreditServiceImpl implements CreditService {
         BigDecimal installmentAmount = createCreditDTO.getAmount().divide(BigDecimal.valueOf(createCreditDTO.getInstallmentCount()),2, RoundingMode.UNNECESSARY);
         Customer customer = customerRepository.findById(createCreditDTO.getCustomerId()).orElseThrow(()-> new ServiceException(ExceptionType.CUSTOMER_NOT_FOUND));
         Credit credit = new Credit();
-        credit.setRemainingAmount(createCreditDTO.getAmount());
+        credit.setRemainingPrincipalAmount(createCreditDTO.getAmount());
         credit.setCustomer(customer);
         List<Installment> installmentList = new ArrayList<>();
         for(int i=1;i< createCreditDTO.getInstallmentCount()+1;i++){

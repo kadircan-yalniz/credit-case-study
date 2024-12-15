@@ -23,8 +23,8 @@ public class Credit extends BaseCreatedColumns{
     private Long id;
     @Column(name = "STATUS")
     private Boolean status = OPEN_CREDIT;
-    @Column(name = "REMAINING_AMOUNT", precision = 19, scale = 2)
-    private BigDecimal remainingAmount;
+    @Column(name = "REMAINING_PRINCIPAL_AMOUNT", precision = 19, scale = 2)
+    private BigDecimal remainingPrincipalAmount;
     @Column(name = "CLOSE_DATE")
     private Date closeDate;
     @JsonIgnore

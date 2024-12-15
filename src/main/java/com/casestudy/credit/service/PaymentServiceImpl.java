@@ -43,11 +43,11 @@ public class PaymentServiceImpl implements PaymentService {
         InstallmentDTO installmentDTO= calculateInstallment(installment);
         setPayProcessFields(installment, payInstallmentDTO.getAmount(), installmentDTO);
         Credit credit = installment.getCredit();
-        if(credit.getRemainingAmount().equals(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount()))){
+        if(credit.getRemainingPrincipalAmount().equals(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount()))){
             credit.setStatus(CLOSED_CREDIT);
             credit.setCloseDate(DateUtil.getCurrentDate());
         }
-        credit.setRemainingAmount(credit.getRemainingAmount().subtract(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount())));
+        credit.setRemainingPrincipalAmount(credit.getRemainingPrincipalAmount().subtract(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount())));
         installmentRepository.saveAndFlush(installment);
         creditRepository.saveAndFlush(credit);
     }
