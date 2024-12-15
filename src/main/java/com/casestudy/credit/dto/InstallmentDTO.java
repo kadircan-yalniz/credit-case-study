@@ -12,7 +12,7 @@ public class InstallmentDTO {
     private Long id;
     private BigDecimal installmentAmount;
     private BigDecimal latenessAmount = BigDecimal.ZERO;
-    private BigDecimal totalAmount;
+    private BigDecimal totalRemainingAmount = BigDecimal.ZERO;
     private Boolean partialFlag;
     private Boolean status;
     private Date installmentDate;

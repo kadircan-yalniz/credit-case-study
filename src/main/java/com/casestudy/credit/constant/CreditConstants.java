@@ -7,7 +7,7 @@ public class CreditConstants {
     private CreditConstants(){ throw new IllegalStateException("Constant Class");}
 
     public static final Boolean OPEN_CREDIT = Boolean.TRUE;
-    public static final Boolean CLOSED_CREDIT = Boolean.TRUE;
+    public static final Boolean CLOSED_CREDIT = Boolean.FALSE;
 
     public static final Boolean NOT_PARTIAL = Boolean.FALSE;
     public static final Boolean UNPAID_INSTALLMENT = Boolean.FALSE;

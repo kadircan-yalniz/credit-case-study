@@ -24,9 +24,6 @@ public interface CoreMapper {
     @Named(value = "toCreditDTO")
     CreditDTO toCreditDTO(Credit credit);
 
-    @IterableMapping(qualifiedByName = "toCreditDTO")
-    List<CreditDTO> toCreditDTOList(List<Credit> credits);
-
     @Mapping(target = "pageIndex", source = "pageIndex")
     @Mapping(target = "pageSize", source = "pageSize")
     @Mapping(target = "status", source = "request.status")
@@ -36,7 +33,6 @@ public interface CoreMapper {
     PayInstallmentDTO toPayInstallmentDTO(PayInstallmentRequest request);
 
     @Mapping(target = "installmentAmount", source = "amount")
-    @Mapping(target = "totalAmount", source = "amount")
     @Named(value = "toInstallmentDTO")
    InstallmentDTO toInstallmentDTO(Installment installment);
 

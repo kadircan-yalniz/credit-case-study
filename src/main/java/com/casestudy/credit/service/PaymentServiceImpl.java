@@ -41,7 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
         Installment installment = installmentRepository.findById(payInstallmentDTO.getInstallmentId())
                 .orElseThrow(()-> new ServiceException(INSTALLMENT_NOT_FOUND));
         InstallmentDTO installmentDTO= calculateInstallment(installment);
-        setPayProcessFields(installment, payInstallmentDTO.getAmount(), installmentDTO.getTotalAmount());
+        setPayProcessFields(installment, payInstallmentDTO.getAmount(), installmentDTO);
         Credit credit = installment.getCredit();
         if(credit.getRemainingAmount().equals(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount()))){
             credit.setStatus(CLOSED_CREDIT);
@@ -64,12 +64,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     private InstallmentDTO calculateInstallment(Installment installment){
         BigDecimal totalPaidAmount = getTotalPaidAmount(installment);
-        BigDecimal remainingAmount = installment.getAmount().subtract(totalPaidAmount);
-        BigDecimal latenessAmount = calculateLatenessAmount(installment.getInstallmentDate(), remainingAmount);
-        BigDecimal installmentAmount = remainingAmount.add(latenessAmount);
+        BigDecimal remainingPrincipalAmount = installment.getAmount().subtract(totalPaidAmount);
+        BigDecimal latenessAmount = calculateLatenessAmount(installment.getInstallmentDate(), remainingPrincipalAmount);
+        BigDecimal totalRemainingAmount = remainingPrincipalAmount.add(latenessAmount);
         InstallmentDTO installmentDTO = CoreMapper.INSTANCE.toInstallmentDTO(installment);
         installmentDTO.setLatenessAmount(latenessAmount);
-        installmentDTO.setTotalAmount(installmentAmount);
+        installmentDTO.setTotalRemainingAmount(totalRemainingAmount);
         return installmentDTO;
     }
 
@@ -88,15 +88,15 @@ public class PaymentServiceImpl implements PaymentService {
                 .divide(ANNUAL_FACTOR, 2, RoundingMode.HALF_UP);
     }
 
-    private void setPayProcessFields(Installment installment, BigDecimal paymentAmount, BigDecimal totalInstallmentAmount) throws ServiceException {
-        validatePaymentAmount(paymentAmount, totalInstallmentAmount);
+    private void setPayProcessFields(Installment installment, BigDecimal paymentAmount, InstallmentDTO installmentDTO) throws ServiceException {
+        validatePaymentAmount(paymentAmount, installmentDTO.getTotalRemainingAmount());
         Date currentDate = DateUtil.getCurrentDate();
         Payment payment = new Payment();
         payment.setInstallment(installment);
         payment.setPaymentDate(currentDate);
         payment.setPaidAmount(paymentAmount);
 
-        boolean isPartialPayment = paymentAmount.compareTo(totalInstallmentAmount) < 0;
+        boolean isPartialPayment = paymentAmount.compareTo(installmentDTO.getTotalRemainingAmount()) < 0;
         installment.setPartialFlag(isPartialPayment);
         payment.setPartialFlag(isPartialPayment);
         installment.setStatus(!isPartialPayment);
