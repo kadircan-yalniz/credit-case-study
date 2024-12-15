@@ -8,6 +8,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import static com.casestudy.credit.constant.CreditConstants.NOT_PARTIAL;
+
 @Entity
 @Getter
 @Setter
@@ -24,8 +26,8 @@ public class Payment extends BaseCreatedColumns{
     private Installment installment;
     @Column(name = "PAID_AMOUNT", precision = 19, scale = 2)
     private BigDecimal paidAmount;
-    @Column(name = "PARTIAL_FLAG", precision = 19, scale = 2)
-    private Integer partialFlag;
+    @Column(name = "PARTIAL_FLAG")
+    private Boolean partialFlag = NOT_PARTIAL;
     @Column(name = "PAYMENT_DATE")
     private Date paymentDate;
 }

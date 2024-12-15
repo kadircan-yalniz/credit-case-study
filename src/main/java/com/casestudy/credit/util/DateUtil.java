@@ -12,7 +12,7 @@ public class DateUtil {
     private static final List<Integer> WEEKENDS = Arrays.asList(Calendar.SATURDAY, Calendar.SUNDAY);
     public static final String TIME_ZONE_ISTANBUL = "Europe/Istanbul";
 
-    public static Integer calculateLateDay(Date installmentDate){
+    public static Integer calculateLateDays(Date installmentDate){
         return getLateDayTwoDates(resetHour(installmentDate), resetHour(DateUtil.getCurrentDate()) );
     }
 

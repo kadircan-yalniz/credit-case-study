@@ -19,10 +19,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static com.casestudy.credit.constant.CreditConstants.*;
 import static com.casestudy.credit.enumeration.ExceptionType.INSTALLMENT_NOT_FOUND;
 import static com.casestudy.credit.enumeration.ExceptionType.PAYMENT_AMOUNT_BIGGER_THAN_TOTAL_AMOUNT;
 
@@ -37,16 +38,13 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void payInstallment(PayInstallmentDTO payInstallmentDTO) throws ServiceException {
-        Optional<Installment> installmentOpt = installmentRepository.findById(payInstallmentDTO.getInstallmentId());
-        if(!installmentOpt.isPresent()){
-            throw new ServiceException(INSTALLMENT_NOT_FOUND);
-        }
-        Installment installment = installmentOpt.get();
+        Installment installment = installmentRepository.findById(payInstallmentDTO.getInstallmentId())
+                .orElseThrow(()-> new ServiceException(INSTALLMENT_NOT_FOUND));
         InstallmentDTO installmentDTO= calculateInstallment(installment);
         setPayProcessFields(installment, payInstallmentDTO.getAmount(), installmentDTO.getTotalAmount());
         Credit credit = installment.getCredit();
         if(credit.getRemainingAmount().equals(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount()))){
-            credit.setStatus(0);
+            credit.setStatus(CLOSED_CREDIT);
             credit.setCloseDate(DateUtil.getCurrentDate());
         }
         credit.setRemainingAmount(credit.getRemainingAmount().subtract(payInstallmentDTO.getAmount().subtract(installmentDTO.getLatenessAmount())));
@@ -55,26 +53,19 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public List<InstallmentDTO> calculateInstallments(Credit credit){
-        if(credit.getStatus()==0){
+        if(CLOSED_CREDIT.equals(credit.getStatus())){
             return CoreMapper.INSTANCE.toInstallmentDTOList(credit.getInstallments());
         }
         List<Installment> installments = credit.getInstallments();
-        List<InstallmentDTO> installmentDTOList = new ArrayList<>();
-        for(Installment installment:installments){
-            if(installment.getStatus()==1){
-                installmentDTOList.add(CoreMapper.INSTANCE.toInstallmentDTO(installment));
-                continue;
-            }
-            installmentDTOList.add(calculateInstallment(installment));
-        }
-        return installmentDTOList;
+        return installments.stream().map(installment -> PAYED_INSTALLMENT.equals(installment.getStatus())
+                ? CoreMapper.INSTANCE.toInstallmentDTO(installment)
+                : calculateInstallment(installment)).collect(Collectors.toList());
     }
 
     private InstallmentDTO calculateInstallment(Installment installment){
-        BigDecimal paidAmount = installment.getPayments().stream().map(Payment::getPaidAmount).reduce(BigDecimal.ZERO,BigDecimal::add);
-        BigDecimal remainingAmount = installment.getAmount().subtract(paidAmount);
-        Integer lateDay = DateUtil.calculateLateDay(installment.getInstallmentDate());
-        BigDecimal latenessAmount = BigDecimal.valueOf(lateDay).multiply(BigDecimal.valueOf(1.30).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP)).multiply(remainingAmount).divide(BigDecimal.valueOf(360),2, RoundingMode.HALF_UP);
+        BigDecimal totalPaidAmount = getTotalPaidAmount(installment);
+        BigDecimal remainingAmount = installment.getAmount().subtract(totalPaidAmount);
+        BigDecimal latenessAmount = calculateLatenessAmount(installment.getInstallmentDate(), remainingAmount);
         BigDecimal installmentAmount = remainingAmount.add(latenessAmount);
         InstallmentDTO installmentDTO = CoreMapper.INSTANCE.toInstallmentDTO(installment);
         installmentDTO.setLatenessAmount(latenessAmount);
@@ -82,23 +73,43 @@ public class PaymentServiceImpl implements PaymentService {
         return installmentDTO;
     }
 
+    private BigDecimal getTotalPaidAmount(Installment installment){
+        return installment.getPayments().stream()
+                .map(Payment::getPaidAmount)
+                .reduce(BigDecimal.ZERO,BigDecimal::add);
+    }
+
+    private BigDecimal calculateLatenessAmount(Date installmentDate, BigDecimal remainingAmount){
+        int lateDays = DateUtil.calculateLateDays(installmentDate);
+        BigDecimal latenessFactor = YEARLY_LATENESS_RATE.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(lateDays)
+                .multiply(latenessFactor)
+                .multiply(remainingAmount)
+                .divide(ANNUAL_FACTOR, 2, RoundingMode.HALF_UP);
+    }
+
     private void setPayProcessFields(Installment installment, BigDecimal paymentAmount, BigDecimal totalInstallmentAmount) throws ServiceException {
+        validatePaymentAmount(paymentAmount, totalInstallmentAmount);
+        Date currentDate = DateUtil.getCurrentDate();
         Payment payment = new Payment();
         payment.setInstallment(installment);
-        payment.setPaymentDate(DateUtil.getCurrentDate());
+        payment.setPaymentDate(currentDate);
         payment.setPaidAmount(paymentAmount);
-        if(paymentAmount.compareTo(totalInstallmentAmount) > 0){
-            throw new ServiceException(PAYMENT_AMOUNT_BIGGER_THAN_TOTAL_AMOUNT);
-        }
-        if(paymentAmount.compareTo(totalInstallmentAmount) < 0){
-            payment.setPartialFlag(1);
-            installment.setPartialFlag(1);
-        }else{
-            installment.setPartialFlag(0);
-            installment.setPaymentDate(DateUtil.getCurrentDate());
-            installment.setStatus(1);
-            payment.setPartialFlag(0);
+
+        boolean isPartialPayment = paymentAmount.compareTo(totalInstallmentAmount) < 0;
+        installment.setPartialFlag(isPartialPayment);
+        payment.setPartialFlag(isPartialPayment);
+        installment.setStatus(!isPartialPayment);
+        if(!isPartialPayment){
+            installment.setPaymentDate(currentDate);
+            installment.setStatus(PAYED_INSTALLMENT);
         }
         paymentRepository.saveAndFlush(payment);
+    }
+
+    private void validatePaymentAmount(BigDecimal paymentAmount, BigDecimal totalInstallmentAmount) throws ServiceException {
+        if (paymentAmount.compareTo(totalInstallmentAmount) > 0) {
+            throw new ServiceException(PAYMENT_AMOUNT_BIGGER_THAN_TOTAL_AMOUNT);
+        }
     }
 }

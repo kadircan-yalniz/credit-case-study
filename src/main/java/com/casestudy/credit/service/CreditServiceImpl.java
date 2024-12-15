@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,13 +40,10 @@ public class CreditServiceImpl implements CreditService {
     public CreditDTO openCredit(OpenCreditDTO createCreditDTO) throws ServiceException {
 
         BigDecimal installmentAmount = createCreditDTO.getAmount().divide(BigDecimal.valueOf(createCreditDTO.getInstallmentCount()),2, RoundingMode.UNNECESSARY);
-        Optional<Customer> customer = customerRepository.findById(createCreditDTO.getCustomerId());
-        if(!customer.isPresent()){
-            throw new ServiceException(ExceptionType.CUSTOMER_NOT_FOUND);
-        }
+        Customer customer = customerRepository.findById(createCreditDTO.getCustomerId()).orElseThrow(()-> new ServiceException(ExceptionType.CUSTOMER_NOT_FOUND));
         Credit credit = new Credit();
         credit.setRemainingAmount(createCreditDTO.getAmount());
-        credit.setCustomer(customer.get());
+        credit.setCustomer(customer);
         List<Installment> installmentList = new ArrayList<>();
         for(int i=1;i< createCreditDTO.getInstallmentCount()+1;i++){
             Installment installment = new Installment();

@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import static com.casestudy.credit.constant.CreditConstants.OPEN_CREDIT;
+
 @Entity
 @Getter
 @Setter
@@ -19,8 +21,8 @@ public class Credit extends BaseCreatedColumns{
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_CREDIT")
     @Column(name = "ID", length = 16)
     private Long id;
-    @Column(name = "STATUS", length = 1)
-    private Integer status = 1;
+    @Column(name = "STATUS")
+    private Boolean status = OPEN_CREDIT;
     @Column(name = "REMAINING_AMOUNT", precision = 19, scale = 2)
     private BigDecimal remainingAmount;
     @Column(name = "CLOSE_DATE")

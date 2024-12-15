@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import static com.casestudy.credit.constant.CreditConstants.UNPAID_INSTALLMENT;
+
 @Entity
 @Getter
 @Setter
@@ -21,10 +23,10 @@ public class Installment extends BaseCreatedColumns{
     private Long id;
     @Column(name = "AMOUNT", precision = 19, scale = 2)
     private BigDecimal amount;
-    @Column(name = "PARTIAL_FLAG", length = 1)
-    private Integer partialFlag = 0;
-    @Column(name = "STATUS", length = 1)
-    private Integer status = 0;
+    @Column(name = "PARTIAL_FLAG")
+    private Boolean partialFlag = Boolean.FALSE;
+    @Column(name = "STATUS")
+    private Boolean status =  UNPAID_INSTALLMENT;
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "CREDIT_ID", referencedColumnName = "ID")

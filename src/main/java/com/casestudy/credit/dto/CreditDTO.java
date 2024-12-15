@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class CreditDTO {
     private Long id;
-    private Integer status;
+    private Boolean status;
     private BigDecimal remainingAmount;
     private Date openDate;
     private List<InstallmentDTO> installments;
