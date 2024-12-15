@@ -15,7 +15,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import java.util.*;
 
 @Configuration
-public class JacksonConfiguration {
+public class JacksonConfig {
     @Autowired
     private ObjectMapper jacksonObjectMapper;
     @PostConstruct
